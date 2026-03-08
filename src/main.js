@@ -1,28 +1,31 @@
 const { invoke } = window.__TAURI__.core;
 
-let greetInputEl;
-let greetMsgEl;
+window.search = async () => {
+    // 1. Correct the IDs to match index.html
+    const queryInput = document.querySelector("#search-input");
+    const listContainer = document.querySelector("#music-results");
 
-async function greet() {
-// 1. Get the data from Rust
-const songs = await invoke("search_music", { query: greetInputEl.value });
+    // 2. Call Rust (The parameter 'query' matches your Rust code)
+    const songs = await invoke("search_music", { query: queryInput.value });
 
-// 2. Clear out the message area so old results disappear
-greetMsgEl.innerHTML = ""; 
+    // 3. Clear and Build
+    listContainer.innerHTML = "";
+    songs.forEach((song) => {
+        const div = document.createElement("div");
+        div.className = "song-card";
+        div.innerHTML = `
+            <div>
+                <strong>${song.title}</strong><br>
+                <small>${song.artist}</small>
+            </div>
+            <button onclick="window.playSong('${song.id}')">Play</button>
+        `;
+        listContainer.appendChild(div);
+    });
+};
 
-// 3. Loop through each song and add it to the page
-songs.forEach((song) => {
-  const songDiv = document.createElement("div");
-  songDiv.innerHTML = `<strong>${song.title}</strong> - ${song.artist}`;
-  greetMsgEl.appendChild(songDiv);
-});
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
-  });
-});
+window.playSong = async (id) => {
+    const streamUrl = await invoke("get_streaming_url", { id: id });
+    let player = new Audio(streamUrl);
+    player.play();
+};

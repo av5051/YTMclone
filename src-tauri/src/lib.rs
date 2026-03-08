@@ -24,17 +24,26 @@ fn search_music(query: &str) -> Vec<Song>{
     };
     let song2  = Song{
         title : "song2".to_string(),
-        artist : "arpit".to_string(),
+        artist : "kalia".to_string(),
         id : "2".to_string()
     };
     vec![song1,song2]
 }
 
+#[tauri::command]
+fn get_streaming_url(id : String) -> String{
+
+    println!("Fetching stream for ID: {}", id);
+    
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3".to_string()
+}
+
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet , search_music])
+        .invoke_handler(tauri::generate_handler![greet , search_music, get_streaming_url])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
