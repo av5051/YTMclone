@@ -1,7 +1,8 @@
-use serde::Serialize;
-
+use serde;
+use reqwest;
+use tauri::http::response;
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[derive(Serialize)]
+#[derive(serde::Serialize , serde::Deserialize)]
 struct Song{
     title : String,
     artist : String,
@@ -16,18 +17,19 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn search_music(query: &str) -> Vec<Song>{
-    let song1  = Song{
-        title : "song1".to_string(),
-        artist : "arpit".to_string(),
-        id : "1".to_string()
-    };
-    let song2  = Song{
-        title : "song2".to_string(),
-        artist : "kalia".to_string(),
-        id : "2".to_string()
-    };
-    vec![song1,song2]
+async fn search_music(query: &str) -> Result<Vec<Song> , String > {
+
+    let url  = " https://jsonplaceholder.typicode.com/posts";
+    let response = reqwest::get(url)
+        .await
+        .map_err(|e| e.to_string())?;
+    let data: Vec<Song> = response
+        .json()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(data)
+
 }
 
 #[tauri::command]
